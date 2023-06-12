@@ -6,7 +6,8 @@ import NotImplementedError from './error/not-implemented-error.js'
 import PostgresReviewStorage from './storage/postgres-review-storage.js'
 import { Logger } from 'winston'
 
-export default (storage: PostgresReviewStorage, logger: Logger) => {
+// add RabbitMQ here - with correct defined type
+export default (storage: PostgresReviewStorage, queue: any, logger: Logger) => {
   const log = logger.child({ module: 'application' })
 
   const app = express()
@@ -26,7 +27,7 @@ export default (storage: PostgresReviewStorage, logger: Logger) => {
       .send('OK')
   })
 
-  app.use('/api/v1/reviews', reviewRouter(storage))
+  app.use('/api/v1/reviews', reviewRouter(storage, queue))
 
   app.use('/api/v1/averageRatings', averageRatingRouter(storage))
 

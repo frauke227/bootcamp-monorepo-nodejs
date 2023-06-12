@@ -11,7 +11,7 @@ export default class ReviewsClient {
   getEndpoint() {
     return this.endpoint
   }
-
+//will be replaced by MessageQ
   async getAverageRating(contact: string) {
     this.logger.debug('Getting average rating for contact: %s', contact)
     const response = await this.fetch(`${this.endpoint}/api/v1/averageRatings/${contact}`)

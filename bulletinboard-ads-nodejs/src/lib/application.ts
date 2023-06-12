@@ -6,6 +6,8 @@ import NotImplementedError from './error/not-implemented-error.js'
 import PostgresAdStorage from './storage/postgres-ad-storage.js'
 import ReviewsClient from './client/reviews-client.js'
 
+
+// connection to same messageQ as the receiver
 export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger: Logger) => {
   const log = logger.child({ module: 'application' })
 

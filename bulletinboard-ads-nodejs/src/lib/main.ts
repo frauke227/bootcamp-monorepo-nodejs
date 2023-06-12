@@ -22,11 +22,18 @@ export default async function main(config: Config) {
   const { app: { port }, postgres, reviews: { endpoint } } = config
 
   const log = logger.child({ module: 'server' })
+// create rabbitmq connection or channel
+// const channel = ..
 
   await migrate(postgres).up()
   const pool = new pg.Pool(postgres)
   const storage = new PostgresAdStorage(pool, logger)
   const reviewsClient = new ReviewsClient(fetch, endpoint, logger)
+  // channel.consume((msg) => {
+  //   //create func to update db
+  //   updateAverageRating(storage, msg)
+  // })
+
   const app = application(storage, reviewsClient, logger)
 
   app

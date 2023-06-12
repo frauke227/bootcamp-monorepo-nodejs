@@ -7,6 +7,9 @@ const config: Config = {
   postgres: {
     connectionString: 'postgresql://postgres:postgres@localhost:6543/bulletinboard_reviews_dev'
   },
+  // queue: {
+  //   connectionString
+  // }
 }
 
 main(config)

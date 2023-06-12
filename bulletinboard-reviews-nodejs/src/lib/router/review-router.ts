@@ -30,6 +30,7 @@ export default (storage: PostgresReviewStorage) => {
     const { body } = req
     try {
       const id = await storage.create(body)
+        // function to calculate average and send to MessageQ - no async needed
       res
         .status(201)
         .location(`/api/v1/reviews/${id}`)
