@@ -4,7 +4,7 @@ import { validateReview, validateRevieweeEmail, Review, ReviewPayload } from '..
 
 type Empty = Record<string, never>
 
-export default (storage: PostgresReviewStorage) => {
+export default (storage: PostgresReviewStorage, queue: any) => {
   const router = express.Router()
 
   const validateEmail: () => RequestHandler<{ revieweeEmail: string }> = () => (req, res, next) => {
