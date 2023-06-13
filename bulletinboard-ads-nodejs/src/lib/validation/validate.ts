@@ -12,9 +12,15 @@ const Ad = AdPayload.extend({
   id: z.string()
 })
 
+const ReviewPaylaod = z.object({
+  contact: z.string().min(1),
+  rating: z.number().min(1)
+})
+
 const Id = z.coerce.number().gte(1)
 
 export type AdPayload = z.infer<typeof AdPayload>
+export type ReviewPaylaod = z.infer<typeof ReviewPaylaod>
 export type Ad = z.infer<typeof Ad>
 
 export const validateAd = (adPayload: unknown) => {

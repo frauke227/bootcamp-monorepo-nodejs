@@ -7,15 +7,18 @@ import { AdPayload, Ad } from '../validation/validate.js'
 export default class PostgresAdStorage {
   static EXISTS = 'SELECT EXISTS(SELECT 1 FROM ads WHERE id=$1)'
   static CREATE = 'INSERT INTO ads (title, contact, price, currency) VALUES ($1, $2, $3, $4) RETURNING id'
-  static READ = 'SELECT id, title, contact, price, currency FROM ads WHERE id = $1'
-  static READ_ALL = 'SELECT id, title, contact, price, currency FROM ads'
+  static READ = 'SELECT id, title, contact, price, currency FROM ads WHERE id = $1' //extend to left join with the review
+  static READ_ALL = 'SELECT id, title, contact, price, currency FROM ads' //extend to left join with the review
   static UPDATE = 'UPDATE ads SET (title, contact, price, currency) = ($2, $3, $4, $5) WHERE id = $1'
   static DELETE = 'DELETE FROM ads WHERE id = $1'
   static DELETE_ALL = 'DELETE FROM ads'
 
-  private logger: Logger
 
-  constructor(private pool: Pool, logger: Logger) {
+  logger: Logger
+  pool: Pool
+
+  constructor(pool: Pool, logger: Logger) {
+    this.pool = pool
     this.logger = logger.child({ module: 'postgres-ad-storage' })
     this.pool.on('error', ({ message }) => {
       this.logger.error('Error raised by pg client: %s', message)
