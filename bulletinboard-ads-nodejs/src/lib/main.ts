@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 import pg from 'pg'
 import PostgresAdStorage from './storage/postgres-ad-storage.js'
+import ReviewStorage from './storage/review-storage.js'
 import ReviewsClient from './client/reviews-client.js'
 import logger from './util/logger.js'
 import application from './application.js'
@@ -31,13 +32,14 @@ export default async function main(config: Config) {
   await migrate(postgres).up()
   const pool = new pg.Pool(postgres)
   const storage = new PostgresAdStorage(pool, logger)
+  const reviewStorage = new ReviewStorage(pool, logger)
 
   // TODO: get rid of the reviewsClient
   const reviewsClient = new ReviewsClient(fetch, endpoint, logger)
   const { channel, connection } = await rabbitMqConnection()
 
   channel.consume(queue, (msg) => {
-    new AverageRatingReceiver(channel, connection, storage).consumeQueue(msg)
+    new AverageRatingReceiver(channel, reviewStorage).consumeQueue(msg)
   })
   // const queue = new AverageRatingReceiver(channel, connection, storage)
   // queue.consumeQueue()
