@@ -1,10 +1,11 @@
 import express, { RequestHandler } from 'express'
 import PostgresReviewStorage from '../storage/postgres-review-storage.js'
 import { validateReview, validateRevieweeEmail, Review, ReviewPayload } from '../validation/validate.js'
+import AverageRatingQueue from '../messageq/AverageRatingSender.js'
 
 type Empty = Record<string, never>
 
-export default (storage: PostgresReviewStorage, queue: any) => {
+export default (storage: PostgresReviewStorage, queue: AverageRatingQueue) => {
   const router = express.Router()
 
   const validateEmail: () => RequestHandler<{ revieweeEmail: string }> = () => (req, res, next) => {
@@ -31,13 +32,18 @@ export default (storage: PostgresReviewStorage, queue: any) => {
     try {
       const id = await storage.create(body)
         // function to calculate average and send to MessageQ - no async needed
-      res
+
+        res
         .status(201)
         .location(`/api/v1/reviews/${id}`)
         .json({
           id,
           ...body
         })
+
+      const { averageRating } = await storage.getAverageRatingFor(body.revieweeEmail)
+      queue.sendAverageRating(averageRating, body.revieweeEmail)
+
     } catch (error) {
       next(error)
     }

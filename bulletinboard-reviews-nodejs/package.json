@@ -19,6 +19,7 @@
     "node": "16.x"
   },
   "dependencies": {
+    "@types/amqplib": "^0.10.1",
     "amqplib": "^0.10.3",
     "db-migrate": "^0.11.13",
     "db-migrate-pg": "^1.2.2",

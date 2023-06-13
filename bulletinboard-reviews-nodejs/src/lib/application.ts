@@ -1,13 +1,13 @@
 import { STATUS_CODES } from 'http'
 import express, { ErrorRequestHandler } from 'express'
 import reviewRouter from './router/review-router.js'
-import averageRatingRouter from './router/average-rating-router.js'
+// import averageRatingRouter from './router/average-rating-router.js'
 import NotImplementedError from './error/not-implemented-error.js'
 import PostgresReviewStorage from './storage/postgres-review-storage.js'
+import AverageRatingSender from './messageq/AverageRatingSender.js'
 import { Logger } from 'winston'
 
-// add RabbitMQ here - with correct defined type
-export default (storage: PostgresReviewStorage, queue: any, logger: Logger) => {
+export default (storage: PostgresReviewStorage, queue: AverageRatingSender, logger: Logger) => {
   const log = logger.child({ module: 'application' })
 
   const app = express()
@@ -29,7 +29,8 @@ export default (storage: PostgresReviewStorage, queue: any, logger: Logger) => {
 
   app.use('/api/v1/reviews', reviewRouter(storage, queue))
 
-  app.use('/api/v1/averageRatings', averageRatingRouter(storage))
+  // TODO: this one wont be needed anymore
+  // app.use('/api/v1/averageRatings', averageRatingRouter(storage))
 
   app.use((req, res, next) => {
     const error = new NotImplementedError()
