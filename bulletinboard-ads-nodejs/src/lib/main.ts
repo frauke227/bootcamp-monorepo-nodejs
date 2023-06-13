@@ -6,6 +6,9 @@ import logger from './util/logger.js'
 import application from './application.js'
 import migrate from './storage/migrate-api.js'
 
+import rabbitMqConnection from '../lib/messageq/rabbitMqConnection.js'
+import AverageRatingReceiver from '../lib/messageq/AverageRatingReceiver.js'
+
 export type Config = {
   app: {
     port: number
@@ -22,17 +25,22 @@ export default async function main(config: Config) {
   const { app: { port }, postgres, reviews: { endpoint } } = config
 
   const log = logger.child({ module: 'server' })
-// create rabbitmq connection or channel
-// const channel = ..
 
+  //set the queue up as a connection config
+  const queue = 'averageRatingQueue'
   await migrate(postgres).up()
   const pool = new pg.Pool(postgres)
   const storage = new PostgresAdStorage(pool, logger)
+
+  // TODO: get rid of the reviewsClient
   const reviewsClient = new ReviewsClient(fetch, endpoint, logger)
-  // channel.consume((msg) => {
-  //   //create func to update db
-  //   updateAverageRating(storage, msg)
-  // })
+  const { channel, connection } = await rabbitMqConnection()
+
+  channel.consume(queue, (msg) => {
+    new AverageRatingReceiver(channel, connection, storage).consumeQueue(msg)
+  })
+  // const queue = new AverageRatingReceiver(channel, connection, storage)
+  // queue.consumeQueue()
 
   const app = application(storage, reviewsClient, logger)
 
@@ -40,10 +48,12 @@ export default async function main(config: Config) {
     .listen(port, () => log.info('Server is listening on http://localhost:%d', port))
     .on('error', ({ message }) => log.error('Error starting server: %s', message))
 
-  // const shutdown = () => {
-  //   // TODO: shutdown the server and the database connection gracefully
-  // }
+  const shutdown = () => {
+    pool.end()
+    connection.close()
+    channel.close()
+  }
 
-  // process.on('SIGINT', () => shutdown())
-  // process.on('SIGTERM', () => shutdown())
+  process.on('SIGINT', () => shutdown())
+  process.on('SIGTERM', () => shutdown())
 }
