@@ -10,8 +10,8 @@ export default class ReviewStorage extends PostgresAdStorage {
 
     static REVIEW_EXISTS = 'SELECT EXISTS(SELECT 1 FROM reviews WHERE contact=$1)'
     static REVIEW_CREATE = 'INSERT INTO reviews (contact, review) VALUES ($1, $2) RETURNING contact'
-    static REVIEW_UPDATE = 'UPDATE review SET (contact, review) = ($1, $2) WHERE contact = $1'
-    static REVIEW_DELETE = 'DELETE FROM review WHERE contact = $1'
+    static REVIEW_UPDATE = 'UPDATE reviews SET (contact, review) = ($1, $2) WHERE contact = $1'
+    static REVIEW_DELETE = 'DELETE FROM reviews WHERE contact = $1'
     static REVIEW_DELETE_ALL = 'DELETE FROM reviews'
 
     constructor(pool: Pool, logger: Logger) {

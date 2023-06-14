@@ -4,10 +4,9 @@ import { Logger } from 'winston'
 import adRouter from './router/ad-router.js'
 import NotImplementedError from './error/not-implemented-error.js'
 import PostgresAdStorage from './storage/postgres-ad-storage.js'
-import ReviewsClient from './client/reviews-client.js'
 
 
-export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger: Logger) => {
+export default (storage: PostgresAdStorage, logger: Logger, endpoint: string) => {
   const log = logger.child({ module: 'application' })
 
   const app = express()
@@ -28,7 +27,7 @@ export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger
       .send('OK')
   })
 
-  app.use('/api/v1/ads', adRouter(storage, reviewsClient, logger))
+  app.use('/api/v1/ads', adRouter(storage, endpoint, logger))
 
   app.use((req, res, next) => {
     const error = new NotImplementedError()

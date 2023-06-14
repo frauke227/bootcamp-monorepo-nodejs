@@ -5,7 +5,8 @@ const { combine, splat, timestamp, json } = format
 const { Console } = transports
 
 const logger = createLogger({
-  level: 'http',
+  level: 'debug',
+  // level: 'http',
   format: combine(
     splat(),
     timestamp(),

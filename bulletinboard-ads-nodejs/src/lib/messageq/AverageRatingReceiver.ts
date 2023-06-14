@@ -1,7 +1,7 @@
 import ReviewStorage from '../storage/review-storage.js'
 import amqp = require('amqplib/callback_api')
 // import amqp from 'amqplib/callback_api'
-import { ReviewPaylaod } from '../validation/validate.js'
+// import { ReviewPaylaod } from '../validation/validate.js'
 
 export default class AverageRatingReceiver {
   private channel: amqp.Channel
@@ -16,18 +16,10 @@ export default class AverageRatingReceiver {
 
 
   async consumeQueue(msg: any){
-      // let messageContent: ReviewPaylaod
-      this.channel.assertQueue(this.queue, {
-        durable: false
-      });
-      // const messageContent = async (): Promise<ReviewPaylaod> => {
-      //   let message: ReviewPaylaod
 
-        // this.channel.consume(this.queue, (msg) => {
           const messageStringified = JSON.stringify(msg?.content)
           const messageToSend = JSON.parse(messageStringified)
           console.log(' [x] Received %s', messageToSend);
-          // how to pass from review-storage
           this.reviewStorage.updateAverageRating(messageToSend)
         //   }, {
         //       noAck: true

@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "db:start": "./start-db.sh",
     "db:prune": "docker volume rm bb_ads_local_nodejs",
+    "db:migrate": "ts-node src/migrate.ts",
     "db:migrate:up": "ts-node migrate.ts up",
     "db:migrate:down": "ts-node migrate.ts down"
   },

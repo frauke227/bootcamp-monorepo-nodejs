@@ -1,10 +1,10 @@
 import express, { RequestHandler } from 'express'
 import { Logger } from 'winston'
 import { validateId, validateAd, AdPayload, Ad } from '../validation/validate.js'
-import ReviewsClient from '../client/reviews-client.js'
+// import ReviewsClient from '../client/reviews-client.js'
 import PostgresAdStorage from '../storage/postgres-ad-storage.js'
 
-export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger: Logger ) => {
+export default (storage: PostgresAdStorage, endpoint: string, logger: Logger ) => {
   const validateAndParseId: () => RequestHandler<{ id: number }> = () => (req, res, next) => {
     try {
       const id = req.params.id
@@ -29,20 +29,12 @@ export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger
     }
   }
 
-  // TODO: get rid of after using queue
-  const getAverageContactRating = async ({ contact }: AdPayload) => {
-    const averageContactRating = await reviewsClient.getAverageRating(contact)
-    return averageContactRating
-  }
-
   const getReviewsUrl = ({ contact }: AdPayload) => {
-    return `${reviewsClient.getEndpoint()}/#/reviews/${contact}`
+    return `${endpoint}/#/reviews/${contact}`
   }
 
-    // TODO: get rid of after using queue
-  const getTransientProps = async (ad: Ad) => {
+  const getTransientProps = (ad: Ad) => {
     return {
-      averageContactRating: await getAverageContactRating(ad),
       reviewsUrl: getReviewsUrl(ad)
     }
   }
@@ -59,8 +51,7 @@ export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger
         .json({
           id,
           ...body,
-            // TODO: get rid of after using queue
-          ...await getTransientProps({ id, ...body })
+          ...getTransientProps({ id, ...body })
         })
     } catch (error) {
       next(error)
@@ -71,10 +62,10 @@ export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger
     try {
       let ads = await storage.readAll()
       ads = await Promise.all(ads.map(async (ad) => {
+        logger.debug('message from get:', ad)
         return {
           ...ad,
-            // TODO: get rid of after using queue
-          ...await getTransientProps(ad)
+          ...getTransientProps(ad)
         }
       }))
       res
@@ -91,8 +82,7 @@ export default (storage: PostgresAdStorage, reviewsClient: ReviewsClient, logger
       let ad = await storage.read(id)
       ad = {
         ...ad,
-          // TODO: get rid of after using queue
-        ...await getTransientProps(ad)
+        ...getTransientProps(ad)
       }
       res
         .status(200)
