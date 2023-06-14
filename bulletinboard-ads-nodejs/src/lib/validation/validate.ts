@@ -13,8 +13,8 @@ const Ad = AdPayload.extend({
 })
 
 const ReviewPaylaod = z.object({
-  contact: z.string().min(1),
-  rating: z.number().min(1)
+  revieweeEmail: z.string().min(1),
+  averageRating: z.number().min(1)
 })
 
 const Id = z.coerce.number().gte(1)

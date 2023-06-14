@@ -24,7 +24,8 @@ export default class ReviewStorage extends PostgresAdStorage {
 
     private async checkRatingExists(contact: string) {
         this.logger.debug('Checking contact: %s', contact)
-        const { rows: [{ exists }] } = await this.pool.query<{ exists: boolean }>(ReviewStorage.REVIEW_EXISTS, [contact])
+        const resp = await this.pool.query<{ exists: boolean }>(ReviewStorage.REVIEW_EXISTS, [contact])
+        const { rows: [{ exists }] } = resp
         if (!exists) {
           const message = util.format('No review found for contact: %s', contact)
           console.log('Entry doesnt exsist', message)
@@ -35,10 +36,10 @@ export default class ReviewStorage extends PostgresAdStorage {
 
     async updateAverageRating(messageContent: ReviewPaylaod){
         try {
-            const {contact, rating} = messageContent
-            this.logger.debug('Updating rating with contact: %s', contact)
-            await this.pool.query(ReviewStorage.REVIEW_UPDATE, [contact, rating])
-            this.logger.debug('Successfully updated rating with contact: %s with update: %O', contact, messageContent)
+            const {revieweeEmail, averageRating } = messageContent
+            this.logger.debug('Updating rating with contact: %s', revieweeEmail)
+            await this.pool.query(ReviewStorage.REVIEW_UPDATE, [revieweeEmail, averageRating])
+            this.logger.debug('Successfully updated rating with contact: %s with update: %O', revieweeEmail, messageContent)
           } catch (error) {
             const { message } = error as Error
             this.logger.error('Error updating rating', message)
@@ -46,16 +47,16 @@ export default class ReviewStorage extends PostgresAdStorage {
           }
       }
 
-    async createAverageRating({ contact, rating }: ReviewPaylaod) {
+    async createAverageRating({revieweeEmail, averageRating }: ReviewPaylaod) {
         try {
-            const contactExists = await this.checkRatingExists(contact)
+            const contactExists = await this.checkRatingExists(revieweeEmail)
             if(contactExists){
-                this.logger.debug('Updating rating since contact exsists: %O', { contact, rating })
-                this.updateAverageRating({contact, rating })
+                this.logger.debug('Updating rating since contact exsists: %O', { revieweeEmail, averageRating })
+                this.updateAverageRating({revieweeEmail, averageRating })
             }else {
-                this.logger.debug('Creating rating : %O', { contact, rating })
-                const response = await this.pool.query(ReviewStorage.REVIEW_CREATE, [contact, rating])
-                this.logger.debug('Successfully created rating: %O', { contact, rating })
+                this.logger.debug('Creating rating : %O', { revieweeEmail, averageRating })
+                const response = await this.pool.query(ReviewStorage.REVIEW_CREATE, [revieweeEmail, averageRating ])
+                this.logger.debug('Successfully created rating: %O', { revieweeEmail, averageRating })
                 return response
             }
         } catch (error) {

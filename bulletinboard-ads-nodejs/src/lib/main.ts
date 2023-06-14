@@ -38,7 +38,8 @@ export default async function main(config: Config) {
   const { channel, connection } = await rabbitMqConnection()
 
   channel.consume(queue, (msg: any) => {
-    new AverageRatingReceiver(channel, reviewStorage).consumeQueue(msg)
+    log.debug('from consume channel message:', msg)
+    new AverageRatingReceiver(reviewStorage, logger).consumeQueue(msg)
   })
 
   const app = application(storage, logger, endpoint)
