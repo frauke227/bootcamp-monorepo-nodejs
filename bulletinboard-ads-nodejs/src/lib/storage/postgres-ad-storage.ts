@@ -13,8 +13,8 @@ export default class PostgresAdStorage {
   static DELETE = 'DELETE FROM ads WHERE id = $1'
   static DELETE_ALL = 'DELETE FROM ads'
 
-  logger: Logger
-  pool: Pool
+  private logger: Logger
+  private pool: Pool
 
   constructor(pool: Pool, logger: Logger) {
     this.pool = pool
@@ -64,7 +64,9 @@ export default class PostgresAdStorage {
   async readAll() {
     try {
       this.logger.debug('Reading all ads')
-      const {rows} = await this.pool.query(PostgresAdStorage.READ_ALL)
+      const response = await this.pool.query(PostgresAdStorage.READ_ALL)
+      const {rows} = response
+      this.logger.debug('Successfully read all response - %O', response)
       this.logger.debug('Successfully read all ads - %O', rows)
       return rows
     } catch (error) {

@@ -1,22 +1,23 @@
-import PostgresAdStorage from './postgres-ad-storage.js'
 import { Pool } from 'pg'
 import { Logger } from 'winston'
 import util from 'util'
 import { ReviewPaylaod } from '../validation/validate.js'
 
 
-//do we need to pass it or is it automatically passed then(test if we can call teh function from storage)
-export default class ReviewStorage extends PostgresAdStorage {
+export default class ReviewStorage {
 
     static REVIEW_EXISTS = 'SELECT EXISTS(SELECT 1 FROM reviews WHERE contact=$1)'
     static REVIEW_CREATE = 'INSERT INTO reviews (contact, review) VALUES ($1, $2) RETURNING contact'
-    static REVIEW_UPDATE = 'UPDATE reviews SET (contact, review) = ($1, $2) WHERE contact = $1'
+    static REVIEW_UPDATE = 'UPDATE reviews SET contact = $1, review = $2 WHERE contact = $1'
     static REVIEW_DELETE = 'DELETE FROM reviews WHERE contact = $1'
     static REVIEW_DELETE_ALL = 'DELETE FROM reviews'
 
+    private logger: Logger
+    private pool: Pool
+
     constructor(pool: Pool, logger: Logger) {
-        super(pool, logger)
         this.logger = logger.child({ module: 'review-storage' })
+        this.pool = pool
         this.pool.on('error', ({ message }) => {
           this.logger.error('Error raised by review-storage on client: %s', message)
         })
@@ -38,7 +39,9 @@ export default class ReviewStorage extends PostgresAdStorage {
         try {
             const {revieweeEmail, averageRating } = messageContent
             this.logger.debug('Updating rating with contact: %s', revieweeEmail)
-            await this.pool.query(ReviewStorage.REVIEW_UPDATE, [revieweeEmail, averageRating])
+            const resp = await this.pool.query(ReviewStorage.REVIEW_UPDATE, [revieweeEmail, averageRating])
+            this.logger.debug('lets check response: %O', resp)
+            // TODO: seems that updating doesnt work and returns empty row - issu with SQL or what else???
             this.logger.debug('Successfully updated rating with contact: %s with update: %O', revieweeEmail, messageContent)
           } catch (error) {
             const { message } = error as Error
