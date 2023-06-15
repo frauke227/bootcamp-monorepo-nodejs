@@ -9,6 +9,7 @@ export default class ReviewStorage {
     static REVIEW_EXISTS = 'SELECT EXISTS(SELECT 1 FROM reviews WHERE contact=$1)'
     static REVIEW_CREATE = 'INSERT INTO reviews (contact, review) VALUES ($1, $2) RETURNING contact'
     static REVIEW_UPDATE = 'UPDATE reviews SET contact = $1, review = $2 WHERE contact = $1'
+
     static REVIEW_DELETE = 'DELETE FROM reviews WHERE contact = $1'
     static REVIEW_DELETE_ALL = 'DELETE FROM reviews'
 
@@ -39,9 +40,6 @@ export default class ReviewStorage {
         try {
             const {revieweeEmail, averageRating } = messageContent
             this.logger.debug('Updating rating with contact: %s', revieweeEmail)
-            const resp = await this.pool.query(ReviewStorage.REVIEW_UPDATE, [revieweeEmail, averageRating])
-            this.logger.debug('lets check response: %O', resp)
-            // TODO: seems that updating doesnt work and returns empty row - issu with SQL or what else???
             this.logger.debug('Successfully updated rating with contact: %s with update: %O', revieweeEmail, messageContent)
           } catch (error) {
             const { message } = error as Error
